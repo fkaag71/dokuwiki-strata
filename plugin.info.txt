@@ -4,4 +4,4 @@ email  francois.kaag@cardynal.fr
 date   2022-01-29
 name   Strata
 desc   Semi-Structured data plugin
-url    http://github.com/fkaag71/dokuwiki-strata
+url    http://github.com/fkaag71/dokuwiki-strata2

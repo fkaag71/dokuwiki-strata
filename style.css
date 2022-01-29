@@ -1,0 +1,173 @@
+/**
+ * Styling for error display
+ */
+
+.dokuwiki div.strata-debug-message { /* the error message */
+    color: __text__;
+    background-image: url(../../images/error.png);
+    background-repeat: no-repeat;
+    background-position: 8px 50%;
+    background-color: #FCC;
+
+    margin: 0;
+    padding: 0.4em 0.4em 0.4em 32px;
+
+    border: 1px solid;
+    border-color: #FAA;
+    border-radius: 5px;
+    border-top-right-radius: 5px;
+    border-top-left-radius: 5px;
+}
+
+.dokuwiki div.strata-debug-message.strata-debug-continued { /* error message is followed by something */
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.dokuwiki div.strata-debug { /* the line container */
+    line-height: normal;
+    font-family: monospace;
+    background-color: __background_site__;
+    padding: 0.5em;
+
+    border: 1px solid __border__;
+    border-top: 0;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+
+    box-shadow: 0 0 0.5em __border__ inset;
+}
+.dokuwiki div.strata-debug div.strata-debug-line { /* normal line */
+    white-space: pre;
+    padding: 0 2px 0 2px;
+}
+
+.dokuwiki div.strata-debug div.strata-debug-highlight { /* The highlighted lines container */
+    background-color: #FCC;
+    color: __text__;
+    border: 1px #faa solid;
+    border-radius: 3px;
+}
+
+/**
+ * Entry styling
+ */
+.dokuwiki .strata-data-fragment-link-previous {
+    float: left;
+}
+.dokuwiki .strata-data-fragment-link-next {
+    float: right;
+}
+
+/* Column filter style */
+.strata-container-table tr.filter input {
+    background-color: __background__;
+    border: 1px solid silver;
+    font-style: italic;
+    width: 100%;
+}
+
+.strata-container-table tr.filter {
+    display: none;
+}
+
+.strata-container-table tr.filter.isFiltered, .strata-container.strata-ui-filter table tr.filter {
+    display: table-row;
+}
+
+/* Sort style */
+.strata-ui-sort-direction,
+.strata-ui-eos ~ li .strata-ui-sort-direction,
+.strata-container-table:hover .sorting {
+    background-image: url('images/sort_both.png');
+}
+
+.strata-ui-sort-direction[data-strata-sort-direction="asc"],
+.strata-container-table .sorting[data-strata-sort-direction="asc"],
+.strata-container-table:hover .sorting[data-strata-sort-direction="asc"] {
+    background-image: url('images/sort_asc.png');
+}
+
+.strata-ui-sort-direction[data-strata-sort-direction="desc"],
+.strata-container-table .sorting[data-strata-sort-direction="desc"],
+.strata-container-table:hover .sorting[data-strata-sort-direction="desc"] {
+    background-image: url('images/sort_desc.png');
+}
+
+/* Column sort style */
+.strata-container-table thead tr th.sorting {
+    padding-right: 19px;
+    cursor: pointer;
+    background-position: right center;
+    background-repeat: no-repeat;
+}
+
+.strata-container-table thead tr input,
+.strata-container-table thead tr select {
+    min-width: 100%;
+}
+
+.strata-container-table td[data-strata-sort="0"] {
+    background-color: #EAEBFF;
+}
+
+.strata-container-table td[data-strata-sort="1"] {
+    background-color: #F2F3FF;
+}
+
+.strata-container-table td[data-strata-sort="2"] {
+    background-color: #F9F9FF;
+}
+
+/* Generic sort and filter style */
+.strata-ui-sort-direction {
+    display: inline-block;
+    width: 19px;
+    margin-left: 4px;
+    cursor: pointer;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+.strata-ui-eos ~ li .strata-ui-sort-direction {
+    cursor: auto;
+}
+
+.strata-container ul.filter {
+    list-style-type: none;
+    padding: 0;
+    overflow: auto;
+    border-radius: 5px;
+    box-shadow: 0 0 5px __border__ inset;
+    padding: 5px;
+}
+
+.page .strata-container ul.filter li {
+    margin: 1.5px 1.5px 1.5px 1.5px;
+    padding: 4px 4px 4px 4px;
+    height: 21px;
+    display: inline-block;
+    border-radius: 2px;
+    color: @ini_text;
+}
+
+.strata-container ul.filter li:not(.strata-no-sort):before {
+    content: "|||| ";
+    cursor: move;
+    text-shadow: 1px 1px white;
+}
+
+.strata-container ul.filter li.ui-drop-target:before {
+    content: "Drop here";
+    font-style: italic;
+    padding: 4px 7px 4px 7px;
+}
+
+.strata-container .filter option.strata-filter-special {
+    font-style: italic;
+}
+
+.strata-container .filter li input,
+.strata-container .filter li select {
+    margin-left: 2px;
+}

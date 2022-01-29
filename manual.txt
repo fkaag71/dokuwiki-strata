@@ -1,0 +1,567 @@
+====== Strata: Structured Data Plugin======
+
+The strata plugin allows you to add data to your pages and to query that data from your pages. This manual is split into two parts:
+
+  * the [[#quick guide]] will get you started with a few examples,
+  * the [[#reference guide]] will show you every possible option.
+
+
+====== Quick Guide ======
+
+The quick guide will get you up and running with some examples of how to enter and query. More advanced uses are discussed in the reference guide.
+
+A good way to get more experienced is to add some simple data to your wiki, and start querying it. Most error messages are descriptive enough to get some idea of what went wrong.
+
+
+===== Data Block =====
+
+Data entry is done with ''<data>'' tags. The following example is a data block for Jane Doe. The block is meant to add some extra data to the page it is on (we assume it is on the page ''persons:jane_doe''). The example shows you how to add simple values, how to declare a class, and how to use types.
+
+<code>
+<data person>
+Full Name: Jane Maria Doe
+Birthday [date]: 1982-7-23
+</data>
+</code>
+
+**Simple Values**: You add simple values to the data block by adding a line like ''field: value''. The field and value are sometimes called the predicate and object respectively.
+
+**Classes**: You can add one or more classes to a data block by placing them in the opening tag. Classes are separated by spaces, so class names declared in this way can not contain spaces. (Note that declaring a class name is effectively the same as adding a ''is a: person'' field-value pair to the data block.)
+
+**Types**: You can add a [[#types|type]] to use by putting the type between ''['' and '']'' after the field name. Types determine how the data is displayed, and how it is stored.
+
+The same example, but extended with more features:
+<code>
+<data person>
+-- Simple field-value pairs
+Full Name: Jane Maria Doe
+Address: 
+
+-- Types and Type Hint
+Birthday [date]: 1982-7-23
+Birthplace [page::places]: Springfield
+
+-- Multiple values
+Contact [link]*: j.doe@example.com, http://www.facebook.com/Jane-Doe
+Contact [link]: jane.doe@workmail.com
+</data>
+</code>
+
+**Empty values**: Any field that doesn't have a value is ignored. This way you can quickly write down some fields you want to use, but fill in their values later.
+
+**Type hints**: You can change how a [[#types|type]] behaves by adding a type hint. Type hints are added by appending them to the type with ''::''. For example ''[page::places]'' uses the page type, and will try to resolve values without an explicit namespace as if they were in the ''places:'' namespace. For a list of types and their hints, see [[#Types]].
+
+**Multiple Values**: You can have multiple values with a field. Do this by either putting a ''*'' after the field (or after the type, if it has any), or by simply adding the field multiple times.
+
+**Comments** All lines that start with double dashes (i.e., ''%%--%%'') are ignored. Note that your comments can still be read by anyone viewing the source of the wiki page.
+
+
+===== Tables and Lists =====
+
+Queries are written inside ''<table>'' or ''<list>'' tags. You query the data by describing what pattern the data should fit. A simple example that produces a table of all persons and their birthday would be described as follows:
+
+<code>
+<table ?p "Person" ?b "Birthday">
+?p is a: person
+?p Birthday [date]: ?b
+?b < 1990-1-1
+</table>
+</code>
+
+**Patterns**: You can use variables and literals to describe what data you want to match. The patterns should be written down in lines, with each line formatted like ''subject field: value''.
+
+For example, ''?p is a: person'' will match any subject that has field ''is a'' and value ''person'' to variable ''?p''.
+
+Variables are indicated with the ''?''. You can use a variable in any spot (except types or type hints). For example ''?p ?k [date]: 1982-7-23'' to find out who has what relation to the date 1982-7-23.
+
+Literals can be written down verbatim, except for subject literals. These should be enclosed in ''%%[[%%'' and ''%%]]%%''. For example ''%%[[persons:jane_doe]] Address: ?a%%'' to get the address associated with Jane Doe.
+
+**Types**: In a query, you can use [[#types]]. You can use types for fields and values, and you can use them in the opening tag. Types are 'sticky': if you put ''?p Birthday [date]: ?b'' the date type will automatically stick to the ''?b'' variable (you could have achieved the same with ''?p Birthday: ?b [date]'').
+
+**Comparisons**: You can use normal operators (e.g, ''<'', ''>'', ''>='', ''%%<=%%'', ''='', ''!='') to compare values. A variable's type will be taken into account for the comparison. See [[#Comparison Operators]] for more information.
+
+You can only compare variables that are used in a pattern.
+
+**Captions**: You can put captions in the opening tag to change the caption of the column. Captions are not displayed by lists, but are still used to add names to the filtering and sorting interface.
+
+<code>
+<table ?p "Person" ?address@count "# of Addresses" ?address>
+?p is a: person
+
+optional {
+  ?p Address: ?address
+}
+
+minus {
+  ?p Contact: ?c
+}
+
+group {
+  ?p
+}
+sort {
+  ?address (desc)
+}
+ui {
+  Person {
+    filter: select
+  }
+  Address {
+    filter: text
+  }
+}
+</table>
+</code>
+
+**Aggregates**: Variables can have multiple values (usually through grouping). You can apply an aggregate function to the variable's values by adding it to any variable in the opening tag with ''@''. For example ''?address@count'' will apply the [[#aggregates|count]] aggregate to the values in ''?address''.
+
+For more on aggregates, see [[#Aggregates]].
+
+**Optional matches**: Normally, all patterns must be matched for the results to be shown. You can use an ''optional'' block to indicate that some of the patterns are optional, and need not be matched for the results to be shown. All patterns in an optional block must match for the optional block to be used. If any pattern in the block doesn't match, none of the patterns in the block will be used.
+
+You can have multiple optional blocks. You can even have optional blocks inside optional blocks.
+
+**Exclusions**: With the ''minus'' block, you can declare that the data is not allowed to match certain patterns. In this case, the results are not allowed to have contact information.
+
+**Grouping**: By adding a ''group'' block zero or more variables can be grouped. This means that all results that have the same value for the grouped variable will be merged, and the ungrouped variables will contain multiple values. You can name one variable per line. If the ''group'' is empty //all// results will be merged into a single result.
+
+**Sorting**: By adding ''sort'' you can define one or more variables to sort on. You can name one variable per line, and include a direction with ''(ascending)'' or ''(descending)'' (or their short-hands ''(asc)'' and ''(desc)'').
+
+**User Interface**: By adding ''ui'' you can define how and if the user interface allows filtering (and sorting) on the client. See [[#User Interface]] for details.
+
+**Comments**: As with a [[#data block]], you can use ''%%--%%'' at the start of a line to add comments.
+
+**Caching**: By default, the results you see on the page will be cached. So if you edit other pages, you'll need to refresh the page with the list yourself, or add ''%%~~NOCACHE~~%%'' to force dokuwiki to rerender.
+
+
+====== Reference Guide ======
+
+The reference guide is split up into four sections:
+  * [[#Data Entry]]
+  * [[#Query Language]]
+  * [[#Query Results]]
+  * [[#User Interface]]
+  * [[#Types & Aggregates]]
+
+
+===== Data Entry =====
+
+Entering data is done with the ''<data>'' syntax. A data block defines data that is associated with the page the data block is written on.
+
+What follows is a generic pattern of the syntax of data entry
+<code>
+<data class1 class2 classN #fragment identifier>
+Field [type::hint]*: value1, value2, valueN
+</data>
+</code>
+
+== Field-Value pairs ==
+
+The simplest form of data entry. Fields and values are also called predicates and objects. It is possible to leave out the value, then the field-value pair will not be stored, but you can easily fill in the missing value later.
+
+  * Field names can contain any character except the following: '':'' ''('' '')'' ''['' '']'' ''{'' ''}'' ''<'' ''>'' ''|'' ''~'' ''!'' ''@'' ''#'' ''$'' ''%'' ''^'' ''&'' ''*'' ''?'' ''='' ''%%"%%''
+  * Values can contain any character, but values in a list of multiple values can't contain '',''
+
+You can add multiple values in a single line by adding an asterisk after the type (or after the key, if it has no type). The values should be separated by '',''. Note that you can also add multiple values just by writing multiple lines with the same key.
+
+There is a single magic value to indicate the empty value: ''%%[[]]%%'' This token can be used with any type, but is especially useful with the [[#types|ref]] and [[#types|page]] types as it will create a link to the page the data block is on.
+
+== Classes ==
+
+As a convenience, you can attach one or more classes to the data by putting them in the opening: ''<data **person**>''. To add multiple classes, separate them with a space.
+
+Classes are not handled specially. This way of adding classes to the data is merely a convenience. You can achieve the same by adding values to field ''is a''. For example ''<data person>'' can be achieved by a line of ''is a: person'' in the data entry.
+
+  * Class names in the header can contain any characters except spaces, ''#'', or ''>''
+
+== Entry Title ==
+
+Normally, the ''entry title'' field is automatically generated for any data block. This field is used when displaying values with the [[#types|ref]] type.
+
+The field is generated from the fragment identifier if it is available. If the block has no fragment identifier, the page title is used as entry title. If you want to override the entry title of a data block, you can do so by adding the ''entry title'' field yourself.
+
+== Field Types ==
+
+You can add a [[#types|type]] to a field by putting the type between ''['' and '']'' and placing it after the field name. This will change how the field's values are stored and displayed. Note that the declared type is only used during entry, that is, the type is not stored. You can declare a different type when [[#Querying Data]].
+
+You can add a type hint to any type you use. You do so by adding the type hint to the type with a ''::'' marker: ''[type::hint]''. Usually, type hints change the way a type displays data. See [[#types]] for possible types and hints.
+
+== Comments ==
+
+You can add comments by starting a line with ''%%--%%''. Comments are not used nor are they displayed. Note that anyone that can do 'view source' can read your comments.
+
+
+==== Data Fragments ====
+
+Instead of associating data directly with the page, you can put it in a fragment. A fragment is a piece of data that is not directly associated with the page itself, but instead is associated with part of the page.
+
+A data fragment is not implicitly associated with the page it is defined on. If you want to add such a relation, you need to do this yourself. Note that the ''%%[[]]%%'' value can be used with the [[#types|ref]] or [[#types|page]] type to refer to the current page.
+
+== Fragment Identifiers ==
+
+A data block is associated with a fragment simply by adding a fragment identifier to the block's opening tag: ''<data #fragment identifier>''. Fragment identifiers are used in much the same way as a page's sections.
+
+  * Fragment Identifiers can contain any character except ''>''
+
+
+==== Split Data Entries ====
+
+Sometimes, it makes sense to have all data associated with a single page, but defined in multiple data blocks throughout the page. This is possible by simply splitting the data blocks into multiple blocks.
+
+Note that the [[#classes]] do not have to be repeated. If you want to split a fragment data block, you have to add the same [[#fragment identifier]] to every data block of the fragment.
+
+
+===== Query Language =====
+
+Querying data is done through the ''<table>'' and ''<list>'' syntax. A table or list block defines what data to query, and how to display it. This part of the reference is about querying the data. The [[#Query Results]] section discusses how to control the display of data (this includes sorting, grouping, and aggregation).
+
+The following sections contain short samples, each of these samples is situated inside a table or list block. It is possible to enclose the whole of the query (not including sorting, grouping, or other [[#Query Results]] related blocks) in a ''query'' block as a convenience.
+
+The query blocks are [[#optional]], [[#minus]], [[#union]].
+
+
+==== Patterns ====
+
+Patterns are the basic building block of all queries. They are constructed according to the following format:
+
+  subject predicate: object
+
+You can use variables, indicated by starting with ''?'', and literals in any position.
+
+  * Variables can contain any character except spaces or '':'' ''('' '')'' ''['' '']'' ''{'' ''}'' ''<'' ''>'' ''|'' ''~'' ''!'' ''@'' ''#'' ''$'' ''%'' ''^'' ''&'' ''*'' ''?'' ''='' ''%%"%%''
+  * Subject literals must be enclosed in ''%%[[%%'' and ''%%]]%%'', and are interpreted as if it were a wiki link
+  * Predicate literals can contain any character except '':'' and ''[''
+  * Object literals can contain any character
+
+You can refer to 'the current page' with ''%%[[]]%%''. This can be used to write queries that get information related to the page, but defined on other pages.
+
+
+==== Typing ====
+
+You can use types to make sure the data is interpreted in the correct way, and to create a better looking result.
+
+  subject ?predicate [type::hint]: ?object [type::hint]
+
+[[#Types]] can only be added to variables. A variable in the subject position will always be typed as [[#types|ref]]. Literals can't be typed, but will be interpreted according to the variables they are used with.
+
+Types are 'sticky'. This means that the first mentioned type for a certain variable will stick to the variable for the whole query. You can override a specific use, but without an explicit type a variable will be of the type first attached to it.
+
+Types are propagated according to the following rules:
+  * variables in the subject position are always of type [[#type|ref]] (and the ref type will stick)
+  * The first explicit mention of a type for a variable will stick that type to the variable
+  * unless the object is explicitly typed, a typed predicate will propagate its type to the object
+
+
+==== Filters ====
+
+You can use simple filters to refine any matches from a pattern.
+
+  left > right
+
+It is possible to use both variables and literals for left and right, but there must be at least one variable present. You can only use variables that are used in a pattern in the same block or inner blocks (with the exception of [[#minus]] blocks, which don't bind any variables).
+
+=== Comparison Operators ===
+
+The following filters apply to all types of data:
+^ Generic ^^
+^ Filter ^ Name ^
+|  ''!=''  | Not equal |
+|  ''=''  | Equal |
+
+These filters only make sense on numerical values:
+^ Numerical ^^
+^ Filter ^ Name ^
+|  ''>''  | Greater than |
+|  ''>=''  | Greater than or equal |
+|  ''<''  | Less than |
+|  ''%%<=%%''  | Less than or equal |
+
+These filters (usually) only make sense on textual values:
+^ Textual ^^
+^ Filter ^ Name ^
+|  ''~''  | Contains |
+|  ''!~''  | Does not contain |
+|  ''%%^~%%''  | Starts with |
+|  ''%%!^~%%''  | Does not start with |
+|  ''$~''  | Ends with |
+|  ''!$~''  | Does not end with |
+|  ''~>''  | In wiki namespace |
+|  ''!~>''  | Not in wiki namespace |
+
+The ''~>'' and ''!~>'' operators are special cases of ''^~'' and ''!^~'' that use the [[#types|text]] type when comparing a left-sided variable to a right-sided literal, regardless of the variable's type. The use of these two operators makes most sense when comparing variables with the [[#types|ref]] or [[#types|page]] types.
+
+
+==== Optional ====
+
+Optional blocks can be used to optionally match extra patterns.
+
+  optional {
+    ...
+  }
+
+An optional block must contain at least a [[#patterns|pattern]]. Filters and other query blocks are also possible. An optional block is only used if all patterns in the block match.
+
+
+==== Union ====
+
+You can tell the wiki to combine two patterns.
+
+  union {
+    {
+      ...
+    }
+    {
+      ...
+    }
+  }
+
+An union block can contain more than two options, but must have at least two. All options must contain at least a pattern, but can contain filters and query blocks as well.
+
+
+==== Minus ====
+
+A minus block is used to exclude all results for which the patterns in the minus block match.
+
+  minus {
+    ...
+  }
+
+A minus block must contain at least a pattern, but can contain filters and other query blocks.
+
+
+===== Query Results =====
+
+This section describes the options you have to control the output of the query.
+
+The query result blocks are: [[#sorting|sort]], [[#grouping|group]], [[#variable projection|fields]] and [[#Considering Fields|consider]].
+
+
+==== Sorting ====
+
+You can sort on one or more variables.
+
+  sort {
+    ?variable (direction)
+  }
+
+The sort block takes a single variable per line, with an optional direction between parenthesis. Both full (ascending and descending) and abbreviated (asc and desc) are usable.
+
+
+==== Grouping ====
+
+Grouping on one or more variables allows you to create overviews.
+
+  group {
+    ?variable
+  }
+
+Grouping allows you to collapse multiple results into a single result. All results that have the same value for all variables mentioned in the group block will be merged into a single result. Any variable in the merged result that is not mentioned in the group block will contain multiple values.
+
+
+==== Variable Projection ====
+
+To define the variables to display, you can use the shorthand or the long syntax:
+
+  <table ?variable@aggregate(hint) [type::hint] "Caption">
+
+  fields {
+    ?variable@aggregate(hint) [type::hint]: Caption
+  }
+
+All elements except the variable itself are optional. If left out, a reasonable guess or default is used.
+
+  * The default aggregate is to use no aggregation
+  * The default type is the type associated with the variable in the query
+  * The default caption is the variable name with a capital first letter
+
+Any variables not mentioned in the projection are left out of consideration for determining what the results are. This might create a problem where simple results from a complex query seem incomplete, in that case try [[#Considering fields]].
+
+
+==== Aggregation Functions ====
+
+Aggregation functions are used to process a variables captured values before display. These functions can be used for things like counting, summing up or reducing the values to only the unique values.
+
+See [[#Aggregates]] for all possible aggregates and their hints.
+
+
+==== Considering fields ====
+
+If a variable is not mentioned as one of the displayed fields, it will be ignored. You can hint that some field needs to be considered, but not displayed.
+
+  consider {
+    ?variable
+  }
+
+All variables mentioned will be considered to be relevant, even if they are not displayed. Since the queries use so called 'set semantics', results that are equivalent will be reduced to a single result. This can be prevented by declaring additional variables to be considered; results are only equivalent if all displayed and all considered fields are equal.
+
+===== User Interface =====
+The ''%%ui%%'' block controls the interactive user interface of tables and lists. It can be used to make columns sortable and filterable. A ''%%ui%%'' block looks as follows:
+
+<code>
+ui {
+  ui: generic
+  sort: default
+  filter: text
+}
+</code>
+
+The properties that can be specified, are explained in the following subsections.
+
+Note: Users that have JavaScript disabled will not benefit from the user interface settings.
+==== UI ====
+The property ''%%ui%%'' specifies which user interface is shown and can have the values: ''%%none%%'', ''%%generic%%'', and ''%%table%%'' (only for tables). When the ''%%ui%%'' block is present, this property defaults to ''%%table%%'' for tables and ''%%generic%%'' otherwise. However, when no ''%%ui%%'' block is present, tables do have a ''%%table%%'' ui by default, since it is very subtle, but lists have no interactive ui.
+==== Sorting ====
+Using ''%%sort%%'' you can specify whether all columns are sortable (''%%default%%'') or not (''%%none%%''). Instead of the default sorting order, you can also choose ''%%left to right%%'' or ''%%right to left%%'' sorting.
+==== Filtering ====
+Using ''%%filter%%'' you can specify whether and how columns are filterable:
+  * ''text'': a text input field. It filters rows that have a value that contains the filter string (substring matching). E.g.: filtering for //David// will match //10 David Street//.
+  * ''%%select%%'': a drop down select box filter, which contains all possible values. It filters rows that have exactly the value that is selected (exact matching).
+  * ''%%prefix select%%'': a drop down select box filter, which contains all possible values. It filters rows that start with the value that is selected (prefix matching). E.g.: if the values //EN//, //%%EN-US%%//, and //%%EN-GB%%// are present, filtering for //EN// will match all three values.
+  * ''%%suffix select%%'': a drop down select box filter, which contains all possible values. It filters rows that end with the value that is selected (suffix matching). E.g.: if the values //10 David Street// and //David Street// are present, filtering for //David Street// will match both values.
+  * ''%%none%%'': no filtering.
+By default, columns are not filterable.
+
+==== Per column configuration ====
+The properties ''%%sort%%'' and ''%%filter%%'' are applied on each column. It is also possible to set these properties differently for some columns, as follows:
+<code>
+<table>
+fields {
+  Person 1: ?p1
+  Relation: ?r
+  Person 2: ?p2
+}
+ui {
+  filter: text
+  Relation {
+    filter: select
+    sort: none
+  }
+}
+?p1 is a: person
+?p2 is a: person
+?p1 ?r: ?p2
+</table>
+</code>
+
+Here, we use a block ''%%Relation%%'' to set different properties for the column named ''%%Relation%%'' (this name is specified in the ''%%fields%%'' group). Thus, all columns are sortable and have text-based filters, except the column ''%%Relation%%'', which is not sortable and has a select-based filter.
+
+Besides identifying columns by name, they can also be identified by number. For example, column ''%%Relation%%'' is also column ''%%#2%%''.
+
+When multiple columns have the same name, settings are applied to all columns that have the given name. To identify specific columns, index them by number. If you use both a block with a name (e.g. ''%%Relation%%'') and one with a number (e.g. ''%%#2%%''), then all settings specified in the numbered block will override the ones specified in the named block. (If you name a column ''%%#2%%'', then ''%%#2%%'' is considered a name, not a number.)
+
+=== Alternative column configuration ===
+Instead of using a block for each column, it is also possible to set all ''%%sort%%'' or ''%%filter%%'' values at once, but this is---in general---less readable than specifying a block for each column. Using this style, the previous example will become as follows:
+<code>
+<table>
+fields {
+  Person 1: ?p1
+  Relation: ?r
+  Person 2: ?p2
+}
+ui {
+  filter*: text, select, text
+  sort*: no, yes, no
+}
+?p1 is a: person
+?p2 is a: person
+?p1 ?r: ?p2
+</table>
+</code>
+By adding a ''%%*%%'' to the property name, we indicate that we are setting multiple columns at once. We must set all columns (e.g.: here, precisely three values must be given). However, we can leave some value the default by giving them the empty string:
+<code>
+<table>
+fields {
+  Person 1: ?p1
+  Relation: ?r
+  Person 2: ?p2
+}
+ui {
+  -- We specify the second column as block, so don't care about the values now
+  filter*: text, , text
+  sort*: no,,no
+  Relation {
+    filter: select
+    sort: no
+  }
+}
+?p1 is a: person
+?p2 is a: person
+?p1 ?r: ?p2
+</table>
+</code>
+
+==== UI with Aggregates ====
+
+In general, the UI is quite intuitive, but combining it with aggregates might give unexpected results (unless you use a table, in which case no special handling is needed). The example below shows the column ''%%address%%'' twice: once the actual values and once the number of values. Because the UI creates filters per column, only one filter will be created for the ''%%address%%'' column. This filter filters both on addresses and number of addresses per person.
+
+<code>
+<list ?p "Person" ?address@count "# of Addresses" ?address>
+?p is a: person
+
+optional {
+  ?p Address: ?address
+}
+
+group {
+  ?p
+}
+sort {
+  ?address (desc)
+}
+ui {
+  filter: text
+}
+</list>
+</code>
+
+As shown below, the above query can easily be converted to one which lists each column only once and, therefore, does have separate filters for the address count and the addresses.
+
+<code>
+<list ?p "Person" ?address-to-count@count "# of Addresses" ?address>
+?p is a: person
+
+optional {
+  ?p Address: ?address
+  ?p Address: ?address-to-count
+  ?address = ?address-to-count
+}
+
+group {
+  ?p
+}
+sort {
+  ?address (desc)
+}
+ui {
+  filter: text
+}
+</list>
+</code>
+===== Types & Aggregates =====
+
+Types and aggregates are used to control how data is stored and displayed.
+
+Types are used with data entry to store data in the correct format. Types with queries are used for handling comparisons, and to determine how the data should be displayed.
+
+Aggregates are used to process values after a query, but before they are displayed.
+
+
+==== Types ====
+
+Types are normally indicated by putting them between ''['' and '']''. Type hints are noted after the type itself in the following format: ''[type::hint]''
+
+~~INFO:stratatypes~~
+
+
+==== Aggregates ====
+
+Aggregates are used on displays of variables. They are attached to the variable with ''@'', for example: ''?x@unique'' applies the unique aggregate to the values of variables ''?x''. Aggregates can be passed a hint by adding the hint between parenthesis: ''?variable@aggregate(hint)''.
+
+~~INFO:strataaggregates~~
+
+
+===== Caching =====
+
+By default, strata does not disable caching. This can result in pages with queries not updating after you edit data somewhere else.
+
+If you edit other pages, you'll need to refresh the page with the list yourself, or add ''%%~~NOCACHE~~%%'' to the page with the query to force dokuwiki to refresh the page every time.

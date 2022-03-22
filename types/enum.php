@@ -15,8 +15,8 @@ class plugin_strata_type_enum extends plugin_strata_type {
 	$scope=getNS($ID);
 	$labels = $triples ->fetchTriples ($scope.':'.$hint,null,$value,null,$scope);
 	$label = ($labels? $labels[0]['predicate']: '#NA');
-	$R->cdata($label);
-        return true;
+	$R->internallink($scope.':'.$hint,$label);
+    return true;
     }
 
     function getInfo() {

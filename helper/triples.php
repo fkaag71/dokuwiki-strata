@@ -126,7 +126,7 @@ class helper_plugin_strata_triples extends DokuWiki_Plugin {
             }
         }
 
-        $sql .= "DELETE FROM ".self::$writable." WHERE ". implode(" AND ", $filters);
+        $sql = "DELETE FROM ".self::$writable." WHERE ". implode(" AND ", $filters);
 
         // prepare query
         $query = $this->_db->prepare($sql);
@@ -149,6 +149,7 @@ class helper_plugin_strata_triples extends DokuWiki_Plugin {
     function fetchTriples($subject=null, $predicate=null, $object=null, $graph=null) {
 	global $ID;
         // construct filter
+
         $filters = array('1 = 1');
         foreach(array('subject','predicate','object','graph') as $param) {
             if($$param != null) {
@@ -156,9 +157,10 @@ class helper_plugin_strata_triples extends DokuWiki_Plugin {
                 $values[] = $$param;
             }
         }
+
 	$scopeRestriction = ($this->getConf('scoped')? ' AND graph like "'.getNS($ID).'%"':"" );
 
-        $sql .= "SELECT subject, predicate, object, graph FROM ".self::$readable." WHERE ". implode(" AND ", $filters).$scopeRestriction;
+        $sql = "SELECT subject, predicate, object, graph FROM ".self::$readable." WHERE ". implode(" AND ", $filters).$scopeRestriction;
 
         // prepare queyr
         $query = $this->_db->prepare($sql);
@@ -166,6 +168,7 @@ class helper_plugin_strata_triples extends DokuWiki_Plugin {
 
         // execute query
         $res = $query->execute($values);
+
         if($res === false) {
             $error = $query->errorInfo();
             msg(sprintf($this->getLang('error_triples_fetch'),hsc($error[2])),-1);

@@ -534,7 +534,8 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
                     if(preg_match("/^({$p->variable})\s*({$p->type})?$/",$object,$captures)!=1) {
                         $this->_fail($this->getLang('error_pattern_garbage'),$lineNode);
                     }
-                    list(, $var, $vtype) = $captures;
+                    $var=$captures[1]??null;
+                    $vtype=$captures[2]??null;
 
                     // create the object node
                     $object = $this->variable($var);
@@ -543,8 +544,11 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
                     // try direct type first, implied type second
                     $vtype = $p->type($vtype);
                     $type = $p->type($type);
-                    $this->updateTypemap($typemap, $object['text'], $vtype->type, $vtype->hint);
-                    $this->updateTypemap($typemap, $object['text'], $type->type, $type->hint);
+                    if (isset ($type))
+                    {
+                      $this->updateTypemap($typemap, $object['text'], $vtype->type, $vtype->hint);
+                      $this->updateTypemap($typemap, $object['text'], $type->type, $type->hint);
+                    }
                 } else {
                     // check for empty string token
                     if($object == '[[]]') {
@@ -742,7 +746,12 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
         // FIELDSHORT := VARIABLE AGGREGATE? TYPE? CAPTION?
         if(preg_match_all("/\s*({$p->variable})\s*({$p->aggregate})?\s*({$p->type})?\s*(?:(\")([^\"]*)\")?/",$line,$match, PREG_SET_ORDER)) {
             foreach($match as $m) {
-                list(, $var, $vaggregate, $vtype, $caption_indicator, $caption) = $m;
+                $var=$m[1]??null;
+                $vaggregate=$m[2]??null;
+                $vtype=$m[3]??null;
+                $caption_indicator=$m[4]??null;
+                $caption=$m[5]??null;
+
                 $variable = $p->variable($var)->name;
                 list($type, $hint) = $p->type($vtype);
                 list($agg, $agghint) = $p->aggregate($vaggregate);

@@ -62,13 +62,16 @@ class syntax_plugin_strata_entry extends DokuWiki_Syntax_Plugin {
         preg_match('/^( +[^#>]+)?(?: *#([^>]*?))?$/', $header, $header);
 
         // process the classes into triples
+        if (isset($header[1]))
+        {
         foreach(preg_split('/\s+/',trim($header[1])) as $class) {
             if($class == '') continue;
             $result['data'][$this->util->getIsaKey(false)][] = array('value'=>$class,'type'=>'text', 'hint'=>null);
         }
+        }
 
         // process the fragment if necessary
-        $result['entry'] = $header[2];
+        $result['entry'] = $header[2]??null;
         $result['position'] = $pos;
         if($result['entry'] != '') {
             $result['title candidate'] = array('value'=>$result['entry'], 'type'=>'text', 'hint'=>null);

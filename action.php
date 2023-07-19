@@ -82,7 +82,7 @@ class action_plugin_strata extends DokuWiki_Action_Plugin {
             $evt->advise_after();
 
             // clean up
-            unset($METADATA_RENDERERS[$id]);
+            unset($METADATA_RENDERERS[$ID]);
         }
     }
 
@@ -132,7 +132,7 @@ class action_plugin_strata extends DokuWiki_Action_Plugin {
             $triples =& plugin_load('helper', 'strata_triples');
             $util =& plugin_load('helper', 'strata_util');
 
-            $title = $current['title'];
+            $title = $current['title'] ?? null;
             if(!$title) {
                 $title = noNS($id);
             }

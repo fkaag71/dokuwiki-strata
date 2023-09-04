@@ -560,3 +560,5 @@ var toggleFiltered = function(tableElement) {
 };
 
 })();
+
+/* DOKUWIKI:include plotly-2.25.2.min.js */

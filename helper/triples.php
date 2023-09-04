@@ -159,6 +159,19 @@ class helper_plugin_strata_triples extends DokuWiki_Plugin {
         }
 
 	$scopeRestriction = ($this->getConf('scoped')? ' AND graph like "'.getNS($ID).'%"':"" );
+/*
+        if ($this->getConf('scoped'))
+	{
+		$NS = getNS($ID);
+		if ($NS=="")
+			{ $scopeRestriction = "and graph not like '%:%'"; }
+                
+		else
+			{ $scopeRestriction = "and graph like".$NS.":%"; }
+			
+	}
+	else { $scopeRestriction="" };
+*/
 
         $sql = "SELECT subject, predicate, object, graph FROM ".self::$readable." WHERE ". implode(" AND ", $filters).$scopeRestriction;
 

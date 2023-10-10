@@ -82,6 +82,8 @@ class syntax_plugin_strata_select extends DokuWiki_Syntax_Plugin {
             // parse projection information in 'short syntax' if available
             if(trim($header) != '') {
                 $result['fields'] = $this->helper->parseFieldsShort($header, $typemap);
+            } else {
+                $result['fields'] = [];
             }
 
             $tree = $this->helper->constructTree($lines,'query');

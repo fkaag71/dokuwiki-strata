@@ -14,7 +14,7 @@ class plugin_strata_type_enum extends plugin_strata_type {
             // use the hint if available
 	$scope=getNS($ID);
 	if ($scope != "") $scope .=":";
-	if (str_starts_with($hint,':'))
+	if (substr($hint,0,1)===':')
 	   { $hint = substr($hint,1); } 
 	else 
 	   { $hint = $scope.$hint; }

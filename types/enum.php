@@ -14,9 +14,15 @@ class plugin_strata_type_enum extends plugin_strata_type {
             // use the hint if available
 	$scope=getNS($ID);
 	if ($scope != "") $scope .=":";
-	$labels = $triples ->fetchTriples ($scope.$hint,null,$value,null,$scope);
+	if (str_starts_with($hint,':'))
+	   { $hint = substr($hint,1); } 
+	else 
+	   { $hint = $scope.$hint; }
+
+	$labels = $triples ->fetchTriples ($hint,null,$value,null,$null);
 	$label = ($labels? $labels[0]['predicate']: '#NA');
-	$R->internallink($scope.':'.$hint,$label);
+
+	$R->internallink($hint,$label);
     return true;
     }
 

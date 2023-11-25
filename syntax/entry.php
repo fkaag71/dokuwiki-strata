@@ -7,6 +7,7 @@
  */
 
 if (!defined('DOKU_INC')) die('Meh.');
+use dokuwiki\Utf8\Clean;
 
 /**
  * Data entry syntax for dedicated data blocks.
@@ -250,16 +251,7 @@ class syntax_plugin_strata_entry extends DokuWiki_Syntax_Plugin {
         }
 
         if($mode == 'xhtml' || $mode == 'odt') {
-            list($currentPosition, $previousPosition, $nextPosition) = $this->getPositions($data);
-            // render table header
-            if($mode == 'xhtml') { $R->doc .= '<div class="strata-entry" '.(isset($currentPosition)?'id="'.$currentPosition.'"':'').'>'; }
-            if($mode == 'odt' && isset($currentPosition) && method_exists ($R, 'insertBookmark')) {
-                $R->insertBookmark($currentPosition, false);
-            }
-            $R->table_open();
-            $R->tablerow_open();
-            $R->tableheader_open(2);
-
+			
             // determine actual header text
             $heading = '';
             if(isset($data['data'][$this->util->getTitleKey()])) {
@@ -279,6 +271,17 @@ class syntax_plugin_strata_entry extends DokuWiki_Syntax_Plugin {
                     $heading = noNS($ID);
                 }
             }
+			
+            list($currentPosition, $previousPosition, $nextPosition) = $this->getPositions($data);
+            // render table header
+            if($mode == 'xhtml') { $R->doc .= '<div class="strata-entry" id="'.Clean::deaccent(strtolower($heading)).'">'; }
+            if($mode == 'odt' && isset($currentPosition) && method_exists ($R, 'insertBookmark')) {
+                $R->insertBookmark($currentPosition, false);
+            }
+            $R->table_open();
+            $R->tablerow_open();
+            $R->tableheader_open(2);
+
             $R->cdata($heading);
 
             // display a comma-separated list of classes if the entry has classes

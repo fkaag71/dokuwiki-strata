@@ -19,7 +19,7 @@ class plugin_strata_type_enum extends plugin_strata_type {
 	else 
 	   { $hint = $scope.$hint; }
 
-	$labels = $triples ->fetchTriples ($hint,null,$value,null,$null);
+	$labels = $triples ->fetchTriples ($hint,null,$value,null,null);
 	$label = ($labels? $labels[0]['predicate']: '#NA');
 
 	$R->internallink($hint,$label);

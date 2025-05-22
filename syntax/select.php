@@ -5,6 +5,7 @@
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Brend Wanders <b.wanders@utwente.nl>
  */
+use dokuwiki\Extension\Event; 
 
 if(!defined('DOKU_INC')) die('Meh.');
 
@@ -264,7 +265,7 @@ class syntax_plugin_strata_select extends DokuWiki_Syntax_Plugin {
      */
     function prepareQuery($query) {
         // fire event
-        trigger_event('STRATA_PREPARE_QUERY', $query);
+	Event::createAndTrigger('STRATA_PREPARE_QUERY', $query);
 
         // return the (possibly modified) query
         return $query;

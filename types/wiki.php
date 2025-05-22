@@ -8,7 +8,7 @@ if(!defined('DOKU_INC')) die('Meh.');
 
 use dokuwiki\Parsing\Parser;
 use dokuwiki\Parsing\Handler\Block;
-
+use dokuwiki\Extension\Event;
 
 /**
  * The 'render as wiki text' type.
@@ -250,7 +250,7 @@ class plugin_strata_type_wiki extends plugin_strata_type {
             $parser->addMode($mode['mode'], $mode['obj']);
         }
 
-        trigger_event('PARSER_WIKITEXT_PREPROCESS', $text);
+        Event::createAndTrigger('PARSER_WIKITEXT_PREPROCESS', $text);        
         $p = $parser->parse($text);
         return $p;
     }

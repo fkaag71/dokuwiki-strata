@@ -548,7 +548,7 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
                     {
                       $this->updateTypemap($typemap, $object['text'], $vtype->type, $vtype->hint);
                     }
-                    else
+                    else if (isset($type))
                     {
                       $this->updateTypemap($typemap, $object['text'], $type->type, $type->hint);
                     }

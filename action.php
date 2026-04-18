@@ -30,8 +30,27 @@ class action_plugin_strata extends DokuWiki_Action_Plugin {
 
         $controller->register_hook('PARSER_METADATA_RENDER', 'AFTER', $this, '_parser_metadata_render_after');
         $controller->register_hook('STRATA_PREVIEW_METADATA_RENDER', 'AFTER', $this, '_parser_metadata_render_after');
+		
+        $controller->register_hook('ACTION_ACT_PREPROCESS','BEFORE', $this, 'preprocess_vacuum');
+        $controller->register_hook('TPL_ACT_UNKNOWN', 'BEFORE', $this, 'result_vacuum');
     }
 
+	function preprocess_vacuum(&$event, $param){
+		if($event->data != 'vacuum') return;
+		// ok - we handle the action
+		$event->preventDefault();
+		return true;
+	}   
+
+	function result_vacuum(&$event, $param){
+		if($event->data != 'vacuum') return;
+		// ok - we handle the action  
+                $triples =& plugin_load('helper', 'strata_triples');
+                $triples->vacuum();
+                
+		$event->preventDefault();
+		return true;
+	}   
 
     /**
      * Triggers before preview xhtml render,

@@ -76,6 +76,14 @@ class helper_plugin_strata_triples extends DokuWiki_Plugin {
         return true;
     }
 
+    function vacuum()
+    {
+        $res = $this ->_db->query("vacuum");
+        if($res === false) {
+            printf("<h1>Error during vacuum</h1>");
+        }
+        else { printf("<h1>Vacuum done</h1>"); }
+    }  
     /**
      * Makes the an SQL expression case insensitive.
      *

@@ -410,7 +410,7 @@ class syntax_plugin_strata_entry extends DokuWiki_Syntax_Plugin {
                 // batch-store triples if we're allowed to store
                 $this->triples->addTriples($triples, $ID);
 
-		$data = [$ID];
+		$data = $ID;
 		Event::createAndTrigger('STRATA_UPDATE',$data);		
 
                 // set flag for title addendum

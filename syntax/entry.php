@@ -8,6 +8,7 @@
 
 if (!defined('DOKU_INC')) die('Meh.');
 use dokuwiki\Utf8\Clean;
+use dokuwiki\Extension\Event;
 
 /**
  * Data entry syntax for dedicated data blocks.
@@ -164,7 +165,7 @@ class syntax_plugin_strata_entry extends DokuWiki_Syntax_Plugin {
             $result['title candidate']['value'] = $type->normalize($result['title candidate']['value'], $result['title candidate']['hint']);
         }
 
-        $footer = $this->handleFooter($footer, $result);
+		$footer = $this->handleFooter($footer, $result);
 
         return $result;
     }
@@ -408,6 +409,9 @@ class syntax_plugin_strata_entry extends DokuWiki_Syntax_Plugin {
             if(!isset($R->info['data']) || $R->info['data']==true) {
                 // batch-store triples if we're allowed to store
                 $this->triples->addTriples($triples, $ID);
+
+		$data = [$ID];
+		Event::createAndTrigger('STRATA_UPDATE',$data);		
 
                 // set flag for title addendum
                 if($fixTitle) {

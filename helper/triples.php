@@ -76,6 +76,14 @@ class helper_plugin_strata_triples extends DokuWiki_Plugin {
         return true;
     }
 
+    function vacuum()
+    {
+        $res = $this ->_db->query("vacuum");
+        if($res === false) {
+            printf("<h1>Error during vacuum</h1>");
+        }
+        else { printf("<h1>Vacuum done</h1>"); }
+    }  
     /**
      * Makes the an SQL expression case insensitive.
      *
@@ -616,6 +624,12 @@ class strata_sql_generator {
                 case '<=':
                     $filters[] = '( ' . $this->_triples->_db->castToNumber($lhs) . ' ' . $f['operator'] . ' ' . $this->_triples->_db->castToNumber($rhs) . ' )';
                     break;
+                case 's>':
+                case 's<':
+                case 's>=':
+                case 's<=':
+                    $filters[] = '( ' . $lhs .substr($f['operator'],1).$rhs.')';
+                    break;
                 case '~':
                     $filters[] = '( ' . $this->_ci($lhs) . ' '.$this->_db->stringCompare().' '. $this->_ci('(\'%\' || ' .$eh.$rhs.$et. ' || \'%\')') .$em. ')';
                     break;
@@ -642,7 +656,7 @@ class strata_sql_generator {
         $filters = implode(' AND ', $filters);
 
         return array(
-            'sql'=>'SELECT * FROM ('.$gp['sql'].') r WHERE '.$filters,
+            'sql'=>'SELECT * FROM ('.$gp['sql'].') WHERE '.$filters,
             'terms'=>$gp['terms']
         );
     }

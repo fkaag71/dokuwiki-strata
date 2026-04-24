@@ -23,7 +23,7 @@ class helper_plugin_strata_syntax_RegexHelper {
         'reflit'    => '(?:\[\[[^]]*\]\])',
         'type'      => '(?:\[\s*[a-z0-9]+\s*(?:::[^\]]*)?\])',
         'aggregate' => '(?:@\s*[a-z0-9]+(?:\([^\)]*\))?)',
-        'operator'  => '(?:!=|>=|<=|>|<|=|!~>|!~|!\^~|!\$~|\^~|\$~|~>|~)',
+        'operator'  => '(?:!=|>=|<=|>|<|=|!~>|!~|!\^~|!\$~|\^~|\$~|~>|~|s>=|s>|s<=|s<)',
         'any'       => '(?:.+?)'
     );
 
@@ -544,9 +544,12 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
                     // try direct type first, implied type second
                     $vtype = $p->type($vtype);
                     $type = $p->type($type);
-                    if (isset ($type))
+                    if (isset ($vtype))
                     {
                       $this->updateTypemap($typemap, $object['text'], $vtype->type, $vtype->hint);
+                    }
+                    else if (isset($type))
+                    {
                       $this->updateTypemap($typemap, $object['text'], $type->type, $type->hint);
                     }
                 } else {

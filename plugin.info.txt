@@ -1,7 +1,7 @@
 base   strata
 author Brend Wanders/François KAAG
 email  francois.kaag@cardynal.fr
-date   2026-04-18
+date   2026-04-27
 name   Strata
 desc   Semi-Structured data plugin
 url    http://github.com/fkaag71/dokuwiki-strata

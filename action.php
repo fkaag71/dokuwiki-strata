@@ -8,6 +8,7 @@
 
 // must be run within Dokuwiki
 if (!defined('DOKU_INC')) die('Meh.');
+use dokuwiki\Extension\Event;
 
 /**
  * This action component exists to allow the definition of
@@ -33,6 +34,8 @@ class action_plugin_strata extends DokuWiki_Action_Plugin {
 		
         $controller->register_hook('ACTION_ACT_PREPROCESS','BEFORE', $this, 'preprocess_vacuum');
         $controller->register_hook('TPL_ACT_UNKNOWN', 'BEFORE', $this, 'result_vacuum');
+
+        $controller->register_hook('COMMON_WIKIPAGE_SAVE', 'AFTER', $this, 'signal_update');
     }
 
 	function preprocess_vacuum(&$event, $param){
@@ -51,6 +54,15 @@ class action_plugin_strata extends DokuWiki_Action_Plugin {
 		$event->preventDefault();
 		return true;
 	}   
+
+	function signal_update($event, $param) {
+	$id = $event->data['id'];
+	if (p_get_metadata($id,"strata",METADATA_RENDER_USING_CACHE)) {
+		syslog(LOG_INFO,"Triggered");
+		Event::createAndTrigger('STRATA_UPDATE',$data);	
+	}
+}
+
 
     /**
      * Triggers before preview xhtml render,

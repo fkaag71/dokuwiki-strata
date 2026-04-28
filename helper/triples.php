@@ -656,7 +656,7 @@ class strata_sql_generator {
         $filters = implode(' AND ', $filters);
 
         return array(
-            'sql'=>'SELECT * FROM ('.$gp['sql'].') WHERE '.$filters,
+            'sql'=>'SELECT * FROM ('.$gp['sql'].') r WHERE '.$filters,
             'terms'=>$gp['terms']
         );
     }

@@ -134,7 +134,7 @@ class helper_plugin_strata_triples extends DokuWiki_Plugin {
             }
         }
 
-        $sql = "UPDATE ".self::$writable." SET graph = 'DELETED' WHERE ". implode(" AND ", $filters);
+        $sql = "DELETE FROM ".self::$writable." WHERE ". implode(" AND ", $filters);
 
         // prepare query
         $query = $this->_db->prepare($sql);
@@ -148,29 +148,6 @@ class helper_plugin_strata_triples extends DokuWiki_Plugin {
         }
 
         $query->closeCursor();
-    }
-
-    /**
-     * Purge deleted triples. One or more parameters
-     * can be left out to indicate 'any'.
-     */
-    function purgeTriples($subject=null) {
-        $sql = "DELETE FROM ".self::$writable." WHERE graph = 'DELETED' AND (".$this->_cic('subject', '?')." OR ".$this->_cic('subject', '?').")";;
-
-	$values = array($subject,$subject."#%");
-        // prepare query
-        $query = $this->_db->prepare($sql);
-        if($query == false) return;
-
-        // execute query
-        $res = $query->execute($values);
-        if($res === false) {
-            $error = $query->errorInfo();
-            msg(sprintf($this->getLang('error_triples_purge'),hsc($error[2])),-1);
-        }
-
-        $query->closeCursor();
-
     }
 
     /**
@@ -188,13 +165,25 @@ class helper_plugin_strata_triples extends DokuWiki_Plugin {
                 $values[] = $$param;
             }
         }
-	$excludeDeleted = ($graph == "DELETED" ? "":"graph != 'DELETED' AND ");
 
 	$scopeRestriction = ($this->getConf('scoped')? ' AND graph like "'.getNS($ID).'%"':"" );
+/*
+        if ($this->getConf('scoped'))
+	{
+		$NS = getNS($ID);
+		if ($NS=="")
+			{ $scopeRestriction = "and graph not like '%:%'"; }
+                
+		else
+			{ $scopeRestriction = "and graph like".$NS.":%"; }
+			
+	}
+	else { $scopeRestriction="" };
+*/
 
-        $sql = "SELECT subject, predicate, object, graph FROM ".self::$readable." WHERE ".$excludeDeleted. implode(" AND ", $filters).$scopeRestriction;
+        $sql = "SELECT subject, predicate, object, graph FROM ".self::$readable." WHERE ". implode(" AND ", $filters).$scopeRestriction;
 
-        // prepare query
+        // prepare queyr
         $query = $this->_db->prepare($sql);
         if($query == false) return;
 
@@ -234,47 +223,29 @@ class helper_plugin_strata_triples extends DokuWiki_Plugin {
     function addTriples($triples, $graph) {
         // prepare insertion query
         $sql = "INSERT INTO ".self::$writable."(subject, predicate, object, graph) VALUES(?, ?, ?, ?)";
-        $queryinsert = $this->_db->prepare($sql);
-        if($queryinsert == false) return false;
-
-        // prepare activation query
-        foreach(array('subject','predicate','object') as $param) {
-                $filters[]=$this->_cic($param, '?');
-        }
-
-        $sql = "UPDATE ".self::$writable." SET graph = ? WHERE ". implode(" AND ", $filters);
-
-        $queryact = $this->_db->prepare($sql);
-        if($queryact== false) return false;
+        $query = $this->_db->prepare($sql);
+        if($query == false) return false;
 
         // put the batch in a transaction
         $this->_db->beginTransaction();
         foreach($triples as $t) {
             // insert a single triple
-            if ($this->fetchTriples($t['subject'],$t['predicate'],$t['object'],"DELETED")) {
-            	$values = array($graph, $t['subject'],$t['predicate'],$t['object']);
-				$res = $queryact->execute($values);
-				if($res === false) $error = $queryact->errorInfo();
-			}
-			else {
-            	$values = array($t['subject'],$t['predicate'],$t['object'],$graph);
-				$res = $queryinsert->execute($values);
-				if($res === false) $error = $queryinsert->errorInfo();
-			}
+            $values = array($t['subject'],$t['predicate'],$t['object'],$graph);
+            $res = $query->execute($values);
+
             // handle errors
-		if($res === false) {
-			msg(sprintf($this->getLang('error_triples_add'),hsc($error[2])),-1);
-			$this->_db->rollBack();
-			return false;
-		}
-		$queryinsert->closeCursor();
-		$queryact->closeCursor();
+            if($res === false) {
+                $error = $query->errorInfo();
+                msg(sprintf($this->getLang('error_triples_add'),hsc($error[2])),-1);
+                $this->_db->rollBack();
+                return false;
+            }
+            $query->closeCursor();
         }
 
         // commit and return
         return $this->_db->commit();
-  
-  }
+    }
 
     /**
      * Executes the given abstract query tree as a query on the store.

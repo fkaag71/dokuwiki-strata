@@ -34,8 +34,6 @@ class action_plugin_strata extends DokuWiki_Action_Plugin {
 		
         $controller->register_hook('ACTION_ACT_PREPROCESS','BEFORE', $this, 'preprocess_vacuum');
         $controller->register_hook('TPL_ACT_UNKNOWN', 'BEFORE', $this, 'result_vacuum');
-
-        $controller->register_hook('COMMON_WIKIPAGE_SAVE', 'AFTER', $this, 'signal_update');
     }
 
 	function preprocess_vacuum(&$event, $param){
@@ -54,15 +52,6 @@ class action_plugin_strata extends DokuWiki_Action_Plugin {
 		$event->preventDefault();
 		return true;
 	}   
-
-	function signal_update($event, $param) {
-	$id = $event->data['id'];
-	if (p_get_metadata($id,"strata",METADATA_RENDER_USING_CACHE)) {
-		syslog(LOG_INFO,"Triggered");
-		Event::createAndTrigger('STRATA_UPDATE',$data);	
-	}
-}
-
 
     /**
      * Triggers before preview xhtml render,
@@ -157,10 +146,10 @@ class action_plugin_strata extends DokuWiki_Action_Plugin {
         $id = $event->data['page'];
 
         $current =& $event->data['current'];
+        $triples =& plugin_load('helper', 'strata_triples');
 
         if(isset($current['strata']['fixTitle']) && $current['strata']['fixTitle']) {
             // get helpers
-            $triples =& plugin_load('helper', 'strata_triples');
             $util =& plugin_load('helper', 'strata_util');
 
             $title = $current['title'] ?? null;
@@ -171,7 +160,9 @@ class action_plugin_strata extends DokuWiki_Action_Plugin {
             $title = $util->loadType('text')->normalize($title,'');
 
             $triples->addTriple($id, $util->getTitleKey(), $title, $id);
+
         }
+        $triples->purgeTriples($id);
     }
 
     /**

@@ -34,6 +34,8 @@ class action_plugin_strata extends DokuWiki_Action_Plugin {
 		
         $controller->register_hook('ACTION_ACT_PREPROCESS','BEFORE', $this, 'preprocess_vacuum');
         $controller->register_hook('TPL_ACT_UNKNOWN', 'BEFORE', $this, 'result_vacuum');
+
+        $controller->register_hook('PLUGIN_MOVE_PAGE_RENAME', 'AFTER', $this, 'strata_rename_after');
     }
 
 	function preprocess_vacuum(&$event, $param){
@@ -164,6 +166,11 @@ class action_plugin_strata extends DokuWiki_Action_Plugin {
         }
         $triples->purgeTriples($id);
     }
+
+  public function strata_rename_after($event,$param) {
+        $triples =& plugin_load('helper', 'strata_triples');
+	$triples->purgeTriples($event->data['src_id']);
+}
 
     /**
      * Purges the data for a single page id.

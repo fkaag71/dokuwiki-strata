@@ -66,7 +66,7 @@ class syntax_plugin_strata_list extends syntax_plugin_strata_select {
                 'typeName'=>$meta['type'],
                 'hint'=>$meta['hint'],
                 'aggregate'=>$this->util->loadAggregate($meta['aggregate']),
-                'aggergateHint'=>$meta['aggregateHint']
+                'aggregateHint'=>$meta['aggregateHint']
             );
         }
 

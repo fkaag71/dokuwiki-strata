@@ -26,7 +26,7 @@ class plugin_strata_type_title extends plugin_strata_type_page {
         // render internal link
         // (':' is prepended to make sure we use an absolute pagename,
         // internallink resolves page names, but the name is already resolved.)
-        $R->internallink($hint.':'.$value, $heading);
+        $R->internallink(':'.$value, $heading);
     }
 
     function getInfo() {

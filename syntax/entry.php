@@ -8,7 +8,9 @@
 
 if (!defined('DOKU_INC')) die('Meh.');
 use dokuwiki\Utf8\Clean;
-
+use dokuwiki\Utf8\PhpString;
+use dokuwiki\Utf8\Conversion;
+use dokuwiki\File\PageResolver;
 /**
  * Data entry syntax for dedicated data blocks.
  */
@@ -89,7 +91,7 @@ class syntax_plugin_strata_entry extends DokuWiki_Syntax_Plugin {
 
         // sanity check
         if(count($tree['cs'])) {
-            msg(sprintf($this->syntax->getLang('error_entry_block'), ($tree['cs'][0]['tag']?sprintf($this->syntax->getLang('named_group'),utf8_tohtml(hsc($tree['cs'][0]['tag']))):$this->syntax->getLang('unnamed_group')), utf8_tohtml(hsc($result['entry']))),-1);
+            msg(sprintf($this->syntax->getLang('error_entry_block'), ($tree['cs'][0]['tag']?sprintf($this->syntax->getLang('named_group'),Conversion::toHtml(hsc($tree['cs'][0]['tag']))):$this->syntax->getLang('unnamed_group')), Conversion::toHtml(hsc($result['entry']))),-1);
             return array();
         }
 
@@ -107,7 +109,7 @@ class syntax_plugin_strata_entry extends DokuWiki_Syntax_Plugin {
                 list($type,$hint) = $p->type($ptype);
 
                 // trim property so we don't get accidental 'name   ' keys
-                $property = utf8_trim($property);
+                $property = PhpString::trim($property);
 
                 // lazy create key bucket
                 if(!isset($result['data'][$property])) {
@@ -119,7 +121,7 @@ class syntax_plugin_strata_entry extends DokuWiki_Syntax_Plugin {
 
                 // generate triples from the values
                 foreach($values as $v) {
-                    $v = utf8_trim($v);
+                    $v = PhpString::trim($v);
                     if($v == '') continue;
                     // replace the [[]] quasi-magic token with the empty string
                     if($v == '[[]]') $v = '';
@@ -129,7 +131,7 @@ class syntax_plugin_strata_entry extends DokuWiki_Syntax_Plugin {
                     $result['data'][$property][] = array('value'=>$v,'type'=>$type,'hint'=>($hint?:null));
                 }
             } else {
-                msg(sprintf($this->syntax->getLang('error_entry_line'), utf8_tohtml(hsc($line))),-1);
+                msg(sprintf($this->syntax->getLang('error_entry_line'), Conversion::toHtml(hsc($line))),-1);
             }
         }
 
@@ -231,6 +233,8 @@ class syntax_plugin_strata_entry extends DokuWiki_Syntax_Plugin {
             $positions = p_get_metadata($ID, 'strata positions');
         }
 
+        $currentPosition = $previousPosition = $nextPosition = null;
+        
         // only read positions if we have them
         if(is_array($positions) && isset($positions[$data['entry']])) {
             $positions = $positions[$data['entry']];
@@ -355,7 +359,8 @@ class syntax_plugin_strata_entry extends DokuWiki_Syntax_Plugin {
             $subject = $ID.'#'.$data['entry'];
 
             // resolve the subject to normalize everything
-            resolve_pageid(getNS($ID),$subject,$exists);
+            $resolver = new PageResolver($ID);
+            $subject = $resolver->resolveId($subject);
 
             $titleKey = $this->util->getTitleKey();
 

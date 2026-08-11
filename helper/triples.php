@@ -558,7 +558,7 @@ class strata_sql_generator {
 
         $scopeRestriction = ($this->_triples->getConf('scoped')? ' AND graph like "'.getNS($ID).'%"':"" );
         return array(
-            'sql'=>'SELECT '.$this->_genPR($tp).' FROM '.helper_plugin_strata_triples::$readable.' WHERE '.$this->_genCond($tp).$scopeRestriction,
+            'sql'=>'SELECT '.$this->_genPR($tp).' FROM '.helper_plugin_strata_triples::$readable.' WHERE '.$this->_genCond($tp).$scopeRestriction.' AND graph != "DELETED"',
             'terms'=>array_unique($terms)
         );
     }

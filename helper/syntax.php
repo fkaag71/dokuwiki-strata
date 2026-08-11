@@ -8,6 +8,9 @@
 
 if (!defined('DOKU_INC')) die('meh.');
 
+use dokuwiki\Utf8\PhpString;
+use dokuwiki\Utf8\Conversion;
+
 /**
  * Helper to construct and handle syntax fragments.
  */
@@ -161,8 +164,8 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
      * Determines whether a line can be ignored.
      */
     function ignorableLine($line) {
-        $line = utf8_trim($line);
-        return $line == '' || utf8_substr($line,0,2) == '--';
+        $line = PhpString::trim($line);
+        return $line == '' || PhpString::substr($line,0,2) == '--';
     }
 
     /**
@@ -268,15 +271,15 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
                     $this->_fail($this->getLang('error_query_sortblock'), $line);
                 }
 
-                if(preg_match("/^({$p->variable})\s*(?:\((asc|desc)(?:ending)?\))?$/S",utf8_trim($line['text']),$match)) {
+                if(preg_match("/^({$p->variable})\s*(?:\((asc|desc)(?:ending)?\))?$/S",PhpString::trim($line['text']),$match)) {
                     $var = $p->variable($match[1]);
                     if(!in_array($var->name, $scope)) {
-                        $this->_fail(sprintf($this->getLang('error_query_sortvar'),utf8_tohtml(hsc($var->name))), $line);
+                        $this->_fail(sprintf($this->getLang('error_query_sortvar'),Conversion::toHtml(hsc($var->name))), $line);
                     }
 
-                    $result['ordering'][] = array('variable'=>$var->name, 'direction'=>($match[2]?:'asc'));
+                    $result['ordering'][] = array('variable'=>$var->name, 'direction'=>($match[2]??'asc'));
                 } else {
-                    $this->_fail(sprintf($this->getLang('error_query_sortline'), utf8_tohtml(hsc($line['text']))), $line);
+                    $this->_fail(sprintf($this->getLang('error_query_sortline'), Conversion::toHtml(hsc($line['text']))), $line);
                 }
             }
         }
@@ -295,15 +298,15 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
                     $this->_fail($this->getLang('error_query_groupblock'), $line);
                 }
 
-                if(preg_match("/({$p->variable})$/",utf8_trim($line['text']),$match)) {
+                if(preg_match("/({$p->variable})$/",PhpString::trim($line['text']),$match)) {
                     $var = $p->variable($match[1]);
                     if(!in_array($var->name, $scope)) {
-                        $this->_fail(sprintf($this->getLang('error_query_groupvar'),utf8_tohtml(hsc($var->name))), $line);
+                        $this->_fail(sprintf($this->getLang('error_query_groupvar'),Conversion::toHtml(hsc($var->name))), $line);
                     }
 
                     $result['grouping'][] = $var->name;
                 } else {
-                    $this->_fail(sprintf($this->getLang('error_query_groupline'), utf8_tohtml(hsc($line['text']))), $line);
+                    $this->_fail(sprintf($this->getLang('error_query_groupline'), Conversion::toHtml(hsc($line['text']))), $line);
                 }
             }
         }
@@ -319,22 +322,22 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
                     $this->_fail($this->getLang('error_query_considerblock'), $line);
                 }
 
-                if(preg_match("/^({$p->variable})$/",utf8_trim($line['text']),$match)) {
+                if(preg_match("/^({$p->variable})$/",PhpString::trim($line['text']),$match)) {
                     $var = $p->variable($match[1]);
                     if(!in_array($var->name, $scope)) {
-                        $this->_fail(sprintf($this->getLang('error_query_considervar'),utf8_tohtml(hsc($var->name))), $line);
+                        $this->_fail(sprintf($this->getLang('error_query_considervar'),Conversion::toHtml(hsc($var->name))), $line);
                     }
 
                     $result['considering'][] = $var->name;
                 } else {
-                    $this->_fail(sprintf($this->getLang('error_query_considerline'), utf8_tohtml(hsc($line['text']))), $line);
+                    $this->_fail(sprintf($this->getLang('error_query_considerline'), Conversion::toHtml(hsc($line['text']))), $line);
                 }
             }
         }
 
         foreach($projection as $var) {
             if(!in_array($var, $scope)) {
-                $this->_fail(sprintf($this->getLang('error_query_selectvar'), utf8_tohtml(hsc($var))));
+                $this->_fail(sprintf($this->getLang('error_query_selectvar'), Conversion::toHtml(hsc($var))));
             }
         }
 
@@ -364,7 +367,7 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
 
         // check for leftovers
         if(count($root['cs'])) {
-            $this->_fail(sprintf($this->getLang('error_query_group'),( isset($root['cs'][0]['tag']) ? sprintf($this->getLang('named_group'), utf8_tohtml(hsc($root['cs'][0]['tag']))) : $this->getLang('unnamed_group'))), $root['cs']);
+            $this->_fail(sprintf($this->getLang('error_query_group'),( isset($root['cs'][0]['tag']) ? sprintf($this->getLang('named_group'), Conversion::toHtml(hsc($root['cs'][0]['tag']))) : $this->getLang('unnamed_group'))), $root['cs']);
         }
 
         // split patterns into triples and filters
@@ -413,10 +416,10 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
                 $line = $f['_line'];
                 unset($f['_line']);
                 if($f['lhs']['type'] == 'variable' && !in_array($f['lhs']['text'], $scope)) {
-                    $this->_fail(sprintf($this->getLang('error_query_filterscope'),utf8_tohtml(hsc($f['lhs']['text']))), $line);
+                    $this->_fail(sprintf($this->getLang('error_query_filterscope'),Conversion::toHtml(hsc($f['lhs']['text']))), $line);
                 }
                 if($f['rhs']['type'] == 'variable' && !in_array($f['rhs']['text'], $scope)) {
-                    $this->_fail(sprintf($this->getLang('error_query_filterscope'),utf8_tohtml(hsc($f['rhs']['text']))), $line);
+                    $this->_fail(sprintf($this->getLang('error_query_filterscope'),Conversion::toHtml(hsc($f['rhs']['text']))), $line);
                 }
             }
 
@@ -507,7 +510,7 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
             if(preg_match("/^({$p->variable}|{$p->reflit})\s+({$p->variable}|{$p->predicate})\s*({$p->type})?\s*:\s*({$p->any})$/S",$line,$match)) {
                 list(, $subject, $predicate, $type, $object) = $match;
 
-                $subject = utf8_trim($subject);
+                $subject = PhpString::trim($subject);
                 if($subject[0] == '?') {
                     $subject = $this->variable($subject);
                     $scope[] = $subject['text'];
@@ -519,7 +522,7 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
                     $subject = $this->literal($subject);
                 }
 
-                $predicate = utf8_trim($predicate);
+                $predicate = PhpString::trim($predicate);
                 if($predicate[0] == '?') {
                     $predicate = $this->variable($predicate);
                     $scope[] = $predicate['text'];
@@ -528,7 +531,7 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
                     $predicate = $this->literal($this->util->normalizePredicate($predicate));
                 }
 
-                $object = utf8_trim($object);
+                $object = PhpString::trim($object);
                 if($object[0] == '?') {
                     // match a proper type variable
                     if(preg_match("/^({$p->variable})\s*({$p->type})?$/",$object,$captures)!=1) {
@@ -572,7 +575,9 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
 
             // [grammar] FILTER := VARIABLE TYPE? OPERATOR VARIABLE TYPE?
             } elseif(preg_match("/^({$p->variable})\s*({$p->type})?\s*({$p->operator})\s*({$p->variable})\s*({$p->type})?$/S",$line, $match)) {
-                list(,$lhs, $ltype, $operator, $rhs, $rtype) = $match;
+               
+                list(,$lhs, $ltype, $operator, $rhs) = $match;
+                $rtype = $match[5]??'';
 
                 $lhs = $this->variable($lhs);
                 $rhs = $this->variable($rhs);
@@ -636,10 +641,10 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
                     $type = 'text';
                     unset($hint);
                 }
-
+                
                 // normalize
                 $type = $this->util->loadType($type);
-                $rhs = $this->literal($type->normalize($rhs,$hint));
+                $rhs = $this->literal($type->normalize($rhs,$hint??""));
 
                 $filters[] = array('type'=>'filter','lhs'=>$lhs, 'operator'=>$operator, 'rhs'=>$rhs, '_line'=>$lineNode);
 
@@ -681,7 +686,7 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
                 $filters[] = array('type'=>'filter','lhs'=>$lhs, 'operator'=>$operator, 'rhs'=>$rhs, '_line'=>$lineNode);
             } else {
                 // unknown lines are fail
-                $this->_fail(sprintf($this->getLang('error_query_pattern'),utf8_tohtml(hsc($line))), $lineNode);
+                $this->_fail(sprintf($this->getLang('error_query_pattern'),Conversion::toHtml(hsc($line))), $lineNode);
             }
         }
 
@@ -732,7 +737,7 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
                 $this->updateTypemap($typemap, $variable, $type, $hint);
                 $result[] = array('variable'=>$variable,'caption'=>$caption, 'aggregate'=>$agg, 'aggregateHint'=>$agghint, 'type'=>$type, 'hint'=>$hint);
             } else {
-                $this->_fail(sprintf($this->getLang('error_query_fieldsline'),utf8_tohtml(hsc($line))), $lineNode);
+                $this->_fail(sprintf($this->getLang('error_query_fieldsline'),Conversion::toHtml(hsc($line))), $lineNode);
             }
         }
 
@@ -800,9 +805,9 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
             $lineCount++;
             if($this->ignorableLine($line)) continue;
 
-            if(preg_match('/^([^\{]*) *{$/',utf8_trim($line),$match)) {
+            if(preg_match('/^([^\{]*) *{$/',PhpString::trim($line),$match)) {
                 list(, $tag) = $match;
-                $tag = utf8_trim($tag);
+                $tag = PhpString::trim($tag);
 
                 $stack[$top]['cs'][] = array(
                     'tag'=>$tag?:null,
@@ -813,7 +818,7 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
                 $stack[] =& $stack[$top]['cs'][count($stack[$top]['cs'])-1];
                 $top = count($stack)-1;
 
-            } elseif(preg_match('/^}$/',utf8_trim($line))) {
+            } elseif(preg_match('/^}$/',PhpString::trim($line))) {
                 $stack[$top]['end'] = $lineCount;
                 array_pop($stack);
                 $top = count($stack)-1;
@@ -989,7 +994,7 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
         foreach ($trees as $tree) {
             $text = $this->extractText($tree);
             foreach($text as $lineNode) {
-                $line = utf8_trim($lineNode['text']);
+                $line = PhpString::trim($lineNode['text']);
                 if (preg_match('/^('.$p->predicate.')(\*)?\s*:\s*('.$p->any.')$/', $line, $match)) {
                     list(, $variable, $multi, $value) = $match;
                     $this->_setPropertyValue($properties, $tree['tag'], $lineNode, $variable, !empty($multi), $value, $propertyValues);
@@ -1037,7 +1042,7 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
             $maxOccur = isset($p['maxOccur']) ? $p['maxOccur'] : $minOccur;
 
             if ($isMulti) {
-                $values = array_map('utf8_trim', explode(',', $value));
+                $values = array_map('PhpString::trim', explode(',', $value));
             } else if ($minOccur == 1 || $minOccur == $maxOccur) {
                 // Repeat the given value as often as we expect it
                 $values = array_fill(0, $minOccur, $value);
@@ -1112,7 +1117,7 @@ class helper_plugin_strata_syntax extends DokuWiki_Plugin {
         array_shift($args);
         array_shift($args);
         $args = array_map('strval', $args); // convert everything to strings first
-        $args = array_map('utf8_tohtml', $args); // Escape args
+        $args = array_map('Conversion::toHtml', $args); // Escape args
         $msg = vsprintf($this->getLang($msg_id), $args);
         msg($msg, -1);
         $this->error .= "<br />\n" . $msg;

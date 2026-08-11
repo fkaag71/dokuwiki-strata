@@ -6,6 +6,8 @@
 // must be run within Dokuwiki
 if(!defined('DOKU_INC')) die('Meh.');
 
+use dokuwiki\File\PageResolver;
+
 /**
  * The page link type.
  */
@@ -16,23 +18,22 @@ class plugin_strata_type_page extends plugin_strata_type {
     function normalize($value, $hint) {
         global $ID;
 
-        // fragment reference special case
-        if(!empty($hint) && substr($hint,-1) == '#') {
-            $value = $hint.$value;
-            resolve_pageid(getNS($hint),$value,$exists);
-            return $value;
+        if (empty($hint)) {
+            $resolver = new PageResolver($ID);
+        } else {
+            if (substr($hint,-1) == '#') {
+                    $value = $hint.$value;
+            }
+            $resolver = new PageResolver("$hint:deprecated");
         }
-
         $base = ($hint?:getNS($ID));
-
+       
         // check for local link, and prefix full page id
         // (local links don't get resolved by resolve_pageid)
         if(preg_match('/^#.+/',$value)) {
             $value = $ID.$value;
         }
-
-        // resolve page id with respect to selected base
-        resolve_pageid($base,$value,$exists);
+        $value = $resolver->resolveId($value);        
 
         // if the value is empty after resolving, it is a reference to the
         // root starting page. (We can not put the emtpy string into the

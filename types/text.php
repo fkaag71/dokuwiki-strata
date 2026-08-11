@@ -13,7 +13,8 @@ class plugin_strata_type_text extends plugin_strata_type {
     // uses base functionality
     function getInfo() {
         return array(
-            'desc'=>'Verbatim text. Does not format, ignores hint.'
+            'desc'=>'Verbatim text. Does not format, ignores hint.',
+			'hint'=>'None'
         );
     }
 }

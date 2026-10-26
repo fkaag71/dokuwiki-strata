@@ -12,6 +12,11 @@ require_once(DOKU_PLUGIN.'strata/driver/driver.php');
  * The base class for database drivers.
  */
 class plugin_strata_driver_sqlite extends plugin_strata_driver {
+    public function innerJoin() {
+        // SQLite keeps CROSS JOIN operands in order; the generator retains ON.
+        return 'CROSS JOIN';
+    }
+
     public function ci($val='?') {
         return "$val COLLATE NOCASE";
     }

@@ -59,6 +59,13 @@ abstract class plugin_strata_driver {
     }
 
     /**
+     * Returns the conjunction join operator for this database.
+     */
+    public function innerJoin() {
+        return 'INNER JOIN';
+    }
+
+    /**
      * Returns the syntax for case-insensitive string comparison.
      *
      * Preferably, this syntax should allow % as a wildcard (e.g. as done by LIKE).

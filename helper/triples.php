@@ -611,7 +611,7 @@ class strata_sql_generator {
     function _trans_and($query) {
         $gp1 = $this->_dispatch($query['lhs']);
         $gp2 = $this->_dispatch($query['rhs']);
-        return $this->_trans_group($gp1, $gp2, 'INNER JOIN');
+        return $this->_trans_group($gp1, $gp2, $this->_db->innerJoin());
     }
 
     /**
